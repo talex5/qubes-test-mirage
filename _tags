@@ -1,0 +1,2 @@
+true: warn(A), strict_sequence
+true: package(lwt.unix)
