@@ -12,7 +12,7 @@ In dom0, create a directory `/var/lib/test-mirage/` and add your test configurat
     memory = 16
     on_crash = 'preserve'
     disk = []
-    vif = []
+    vif = ['mac=00:16:3E:5E:6C:0B,script=vif-route-qubes,backend=sys-firewall,ip=10.0.0.2']
 
 Copy `dom0.native` to dom0 as `/usr/local/bin/test-mirage-dom0`.
 Create `/etc/qubes-rpc/talex5.TestMirage` containing just that path.
