@@ -16,9 +16,9 @@ let upload image_path =
   (* Wait for "Ready". Connection sometimes seems to hang if we send first. *)
   Utils.expect "Ready" from_dom0 >>= fun () ->
   (* Copy the image to the remote VM *)
+  Lwt_io.file_length image_path >>= fun size ->
+  log "Uploading '%s' (%Ld bytes)" image_path size;
   Lwt.async (fun () ->
-    Lwt_io.file_length image_path >>= fun size ->
-    log "Uploading '%s' (%Ld bytes)" image_path size;
     Lwt_io.with_file ~flags:Unix.[O_RDONLY] ~mode:Lwt_io.input image_path (fun src ->
       Lwt_io.write_line Lwt_io.stdout (Int64.to_string size) >>= fun () ->
       Utils.copy src Lwt_io.stdout

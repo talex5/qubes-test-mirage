@@ -4,17 +4,17 @@ qubes-test-mirage
 These **experimental** scripts can be used to test Mirage unikernels on Qubes. They
 provide a secure way to transfer the image to dom0 and run it. Hopefully.
 
-In dom0, create a directory `/var/lib/test-mirage/` and add your test configuration:
+First, use `qubes-manager` to create a new AppVM called `mirage-test`.
 
-    name = 'mirage-test'
-    kernel = '/var/lib/test-mirage/mir-test.xen'
-    builder = 'linux'
-    memory = 16
-    on_crash = 'preserve'
-    disk = []
-    vif = ['mac=00:16:3E:5E:6C:0B,script=vif-route-qubes,backend=sys-firewall,ip=10.0.0.2']
+Next, still in dom0, create a new `mirage-qubes` kernel, with an empty `modules.img` and a compressed empty file for the initramfs, and then set that as the kernel for the new VM:
 
-Copy `dom0.native` to dom0 as `/usr/local/bin/test-mirage-dom0`.
+    # mkdir /var/lib/qubes/vm-kernels/mirage-qubes
+    # cd /var/lib/qubes/vm-kernels/mirage-qubes
+    # touch modules.img
+    # cat /dev/null | gzip > initramfs
+    # qvm-prefs -s mirage-test kernel mirage-qubes
+
+Copy `dom0.native` to dom0 as `/usr/local/bin/test-mirage-dom0` (and make it executable).
 Create `/etc/qubes-rpc/talex5.TestMirage` containing just that path.
 Create a policy allowing your `dev` VM to use the service, as `/etc/qubes-rpc/policy/talex5.TestMirage`.
 
@@ -27,16 +27,30 @@ Then you can test any Mirage image with e.g.
 
     $ test-mirage mir-console.xen
     Waiting for 'Ready'... OK
-    Uploading 'mir-console.xen' (3969544 bytes)
+    Uploading 'mir-console.xen' (4184144 bytes)
     Waiting for 'Booting'... OK
-    mirage-test is an invalid domain identifier (rc=-6)
-    ...
+    ERROR: VM already stopped!
+    --> Creating volatile image: /var/lib/qubes/appvms/mirage-test/volatile.img...
+    --> Loading the VM (type = AppVM)...
+    --> Starting Qubes DB...
+    --> Setting Qubes DB info for the VM...
+    --> Updating firewall rules...
+    --> Starting the VM...
+    MirageOS booting...
+    Initialising timer interface
+    Initialising console ... done.
     hello
     world
+    ...
 
-Note: the `mirage-test is an invalid domain identifier` line is because it tries to `xl destroy mirage-test` first, and this gets printing if it isn't already running.
+Note 1: the `ERROR: VM already stopped!` line is because it tries to stop any existing VM first, and this gets printing if it isn't already running.
 
-The test VM is run using `sudo xl create -c`, with stdin and stdout connected to the process in your dev VM.
+Note 2: if you are using the (currently unreleased) functoria version of mirage, the VM will fail to boot because it doesn't understand the kernel arguments (which are intended for Linux). As a work-around, edit your `main.ml` to return a dummy argv:
+
+    let argv_xen1 () =
+      return (`Ok [| "kernel" |])
+
+The test VM console is then attached using `sudo xl console -c`, with stdin and stdout connected to the process in your dev VM.
 I am assuming that this command does not provide a way to escape from the VM by entering some special character sequence (the usual `Ctrl-]` does not work since this is not a tty, and would just end the process in any case).
 
 
