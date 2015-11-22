@@ -51,7 +51,7 @@ let main () =
   Unix.dup2 Unix.stdout Unix.stderr;
   Lwt_process.exec ~stdin:`Close ~stdout:`Keep ~stderr:(`FD_copy Unix.stdout) stop_cmd >>= fun _status ->
   let from_start = Lwt_process.pread_lines ~stdin:`Close ~stderr:(`FD_copy Unix.stdout) start_cmd in
-  wait_for "--> Starting the qrexec daemon..." from_start >>= fun () ->
+  wait_for "--> Starting Qubes GUId..." from_start >>= fun () ->
   Unix.execv "/usr/bin/sudo" [| "/usr/bin/sudo"; "xl"; "console"; vm_name |]
 
 let report_error ex =
