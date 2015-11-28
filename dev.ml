@@ -25,10 +25,8 @@ let upload image_path =
     )
   );
   Utils.expect "Booting" from_dom0 >>= fun () ->
-  Lwt.join [
-    Utils.copy from_human to_dom0;
-    Utils.copy from_dom0 to_human;
-  ]
+  Lwt.async (fun () -> Utils.copy from_human to_dom0);
+  Utils.copy from_dom0 to_human
 
 let () =
   match Sys.argv with

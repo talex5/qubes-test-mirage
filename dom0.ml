@@ -42,9 +42,14 @@ let main () =
   Lwt_io.flush to_dev >>= fun () ->
   Unix.dup2 Unix.stdout Unix.stderr;
   Lwt_process.exec ~stdin:`Close ~stdout:`Keep ~stderr:(`FD_copy Unix.stdout) stop_cmd >>= fun _status ->
-  Lwt_process.exec ~stdin:`Close ~stderr:(`FD_copy Unix.stdout) start_cmd >>= fun status ->
-  if status <> Unix.WEXITED 0 then exit 1;
-  Unix.execv "/usr/bin/sudo" [| "/usr/bin/sudo"; "xl"; "console"; vm_name |]
+  Lwt_process.exec ~stdin:`Close ~stderr:(`FD_copy Unix.stdout) start_cmd >>= function
+  | Unix.WEXITED 0 ->
+      Printf.printf "Connecting to %s console...\n%!" vm_name;
+      Unix.execv "/usr/bin/sudo" [| "/usr/bin/sudo"; "xl"; "console"; vm_name |]
+  | _ ->
+      let log_file = Printf.sprintf "/var/log/xen/console/guest-%s.log" vm_name in
+      Printf.printf "qvm-start failed; showing tail of %s\n%!" log_file;
+      Unix.execv "/usr/bin/tail" [| "/usr/bin/tail"; log_file |]
 
 let report_error ex =
   Lwt_io.write_line to_dev (Printexc.to_string ex) >|= fun () ->
