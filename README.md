@@ -6,13 +6,16 @@ provide a secure way to transfer the image to dom0 and run it. Hopefully.
 
 First, use `qubes-manager` to create a new AppVM called `mirage-test`.
 
-Next, still in dom0, create a new `mirage-qubes` kernel, with an empty `modules.img` and a compressed empty file for the initramfs, and then set that as the kernel for the new VM:
+Next, still in dom0, create a new `mirage-test` kernel, with an empty `modules.img` and a compressed empty file for the initramfs, and then set that as the kernel for the new VM:
 
-    # mkdir /var/lib/qubes/vm-kernels/mirage-qubes
-    # cd /var/lib/qubes/vm-kernels/mirage-qubes
+    # mkdir /var/lib/qubes/vm-kernels/mirage-test
+    # cd /var/lib/qubes/vm-kernels/mirage-test
     # touch modules.img
     # cat /dev/null | gzip > initramfs
-    # qvm-prefs -s mirage-test kernel mirage-qubes
+    # touch test-mirage-ok
+    # qvm-prefs -s mirage-test kernel mirage-test
+
+Only kernels with a `test-mirage-ok` file can be updated using this program.
 
 Copy `dom0.native` to dom0 as `/usr/local/bin/test-mirage-dom0` (and make it executable).
 Create `/etc/qubes-rpc/talex5.TestMirage` containing just that path.
@@ -25,9 +28,9 @@ In your development domU, create a script called `test-mirage` containing:
 
 Then you can test any Mirage image with e.g.
 
-    $ test-mirage mir-console.xen
+    $ test-mirage mir-console.xen mirage-test
     Waiting for 'Ready'... OK
-    Uploading 'mir-console.xen' (4184144 bytes)
+    Uploading 'mir-console.xen' (4184144 bytes) to "mirage-test"
     Waiting for 'Booting'... OK
     ERROR: VM already stopped!
     --> Creating volatile image: /var/lib/qubes/appvms/mirage-test/volatile.img...
