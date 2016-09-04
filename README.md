@@ -6,11 +6,12 @@ provide a secure way to transfer the image to dom0 and run it. Hopefully.
 
 First, use `qubes-manager` to create a new AppVM called `mirage-test`.
 
-Next, still in dom0, create a new `mirage-test` kernel, with an empty `modules.img` and a compressed empty file for the initramfs, and then set that as the kernel for the new VM:
+Next, still in dom0, create a new `mirage-test` kernel, with an empty `modules.img` and `vmlinuz` and a compressed empty file for the initramfs, and then set that as the kernel for the new VM:
 
     # mkdir /var/lib/qubes/vm-kernels/mirage-test
     # cd /var/lib/qubes/vm-kernels/mirage-test
     # touch modules.img
+    # touch vmlinuz
     # cat /dev/null | gzip > initramfs
     # touch test-mirage-ok
     # qvm-prefs -s mirage-test kernel mirage-test
