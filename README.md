@@ -1,10 +1,13 @@
 qubes-test-mirage
 =================
 
-These **experimental** scripts can be used to test Mirage unikernels on Qubes. They
+These scripts can be used to test Mirage unikernels on Qubes. They
 provide a secure way to transfer the image to dom0 and run it. Hopefully.
 
 First, use `qubes-manager` to create a new AppVM called `mirage-test`.
+You can make it standalone or not and use any template (it doesn't matter
+because unikernels already contain all their code and don't need to use a disk
+to boot).
 
 Next, still in dom0, create a new `mirage-test` kernel, with an empty `modules.img` and `vmlinuz` and a compressed empty file for the initramfs, and then set that as the kernel for the new VM:
 
@@ -18,18 +21,39 @@ Next, still in dom0, create a new `mirage-test` kernel, with an empty `modules.i
 
 Only kernels with a `test-mirage-ok` file can be updated using this program.
 
+Build the test-mirage binaries:
+
+    $ make
+
+This will generate two binaries in the `_build` directory:
+
+- `dom0.native` will run in dom0 and accepts kernel uploads.
+- `dev.native` will run in your dev VM and sends kernel images to dom0.
+
 Copy `dom0.native` to dom0 as `/usr/local/bin/test-mirage-dom0` (and make it executable).
-Create `/etc/qubes-rpc/talex5.TestMirage` containing just that path.
-Create a policy allowing your `dev` VM to use the service, as `/etc/qubes-rpc/policy/talex5.TestMirage`.
+The easiest way to do this is to run these commands in dom0 (`dev` is the name of the build VM
+and you'll need to adjust the path):
 
-In your development domU, create a script called `test-mirage` containing:
+    # qvm-run -p dev 'cat /path/to/test-mirage/_build/dom0.native' > dom0.native
+    # mv dom0.native /usr/local/bin/test-mirage-dom0
+    # chmod a+x /usr/local/bin/test-mirage-dom0
 
-    #!/bin/sh
-    exec qrexec-client-vm dom0 talex5.TestMirage /path/to/test-mirage/dev.native "$@"
+Create `/etc/qubes-rpc/talex5.TestMirage` containing just that path:
 
-Then you can test any Mirage image with e.g.
+    # echo /usr/local/bin/test-mirage-dom0 > /etc/qubes-rpc/talex5.TestMirage
 
-    $ test-mirage mir-console.xen mirage-test
+Create a policy allowing your `dev` VM to use the service, as `/etc/qubes-rpc/policy/talex5.TestMirage`:
+
+    # cat > /etc/qubes-rpc/policy/talex5.TestMirage << EOF
+    dev dom0 allow
+    \$anyvm	\$anyvm	deny
+    EOF
+
+The policy says that `dev` (your dev VM) can use the `talex5.TestMirage` service in `dom0`.
+
+Then you can test any Mirage image with the `test-mirage` script, e.g.
+
+    $ /path/to/test-mirage/test-mirage mir-console.xen mirage-test
     Waiting for 'Ready'... OK
     Uploading 'mir-console.xen' (4184144 bytes) to "mirage-test"
     Waiting for 'Booting'... OK
@@ -47,18 +71,12 @@ Then you can test any Mirage image with e.g.
     world
     ...
 
-Note 1: the `ERROR: VM already stopped!` line is because it tries to stop any existing VM first, and this gets printing if it isn't already running.
+Note: the `ERROR: VM already stopped!` line is because it tries to stop any existing VM first, and this gets printed if it isn't already running.
 
-Note 2: if you are using the (currently unreleased) functoria version of mirage, the VM will fail to boot because it doesn't understand the kernel arguments (which are intended for Linux). As a work-around, edit your `main.ml` to return a dummy argv:
-
-    let argv_xen1 () =
-      return (`Ok [| "kernel" |])
-
-The test VM console is then attached using `sudo xl console -c`, with stdin and stdout connected to the process in your dev VM.
+Once started, the test VM console is attached using `sudo xl console -c`, with stdin and stdout connected to the process in your dev VM.
 I am assuming that this command does not provide a way to escape from the VM by entering some special character sequence (the usual `Ctrl-]` does not work since this is not a tty, and would just end the process in any case).
 
-Note: Your unikernel should implement the qrexec protocol so that Qubes can control it with `qvm-run`. See [mirage-qubes][] for an example unikernel that does this.
-
+Note: Your unikernel should implement the qrexec protocol so that Qubes can control it with `qvm-run`. See [qubes-mirage-skeleton][] for an example unikernel that does this. Alternatively, you can configure with `mirage configure -t qubes` to have this set up automatically.
 
 
 LICENSE
@@ -75,4 +93,4 @@ Redistribution and use in source and binary forms, with or without modification,
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-[mirage-qubes]: https://github.com/talex5/mirage-qubes
+[qubes-mirage-skeleton]: https://github.com/talex5/qubes-mirage-skeleton

@@ -1,0 +1,8 @@
+#!/bin/bash -eu
+DEV_SIDE_BINARY=$(dirname $0)/_build/dev.native
+# DEV_SIDE_BINARY=/path/to/_build/dev.native
+if [ ! -f $DEV_SIDE_BINARY ]; then
+  echo "$DEV_SIDE_BINARY not found (try running 'make')"
+  exit 1
+fi
+exec qrexec-client-vm dom0 talex5.TestMirage $DEV_SIDE_BINARY "$@"
