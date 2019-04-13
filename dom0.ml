@@ -34,7 +34,7 @@ let receive_image image_path =
 
 let error fmt = Printf.ksprintf failwith fmt
 
-let re_valid_name = "^[A-Za-z0-9][-.A-Za-z0-0]*$"
+let re_valid_name = "^[A-Za-z0-9][-.A-Za-z0-9]*$"
 let kernel_image_path vm_name =
   let re = Str.regexp re_valid_name in
   if not (Str.string_match re vm_name 0) then
