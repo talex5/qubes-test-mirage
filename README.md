@@ -25,17 +25,21 @@ Build the test-mirage binaries:
 
     $ make
 
-This will generate two binaries in the `_build` directory:
+The default make target uses Docker to build statically-linking binaries, which ensures
+they will work with the version of Fedora in dom0. You can also use `make local` to build
+without Docker, but you'll need to use a compatible version of glibc in that case.
 
-- `dom0.native` will run in dom0 and accepts kernel uploads.
-- `dev.native` will run in your dev VM and sends kernel images to dom0.
+This will generate two binaries in the `_build/default` directory:
 
-Copy `dom0.native` to dom0 as `/usr/local/bin/test-mirage-dom0` (and make it executable).
+- `dom0.exe` will run in dom0 and accepts kernel uploads.
+- `dev.exe` will run in your dev VM and sends kernel images to dom0.
+
+Copy `dom0.exe` to dom0 as `/usr/local/bin/test-mirage-dom0` (and make it executable).
 The easiest way to do this is to run these commands in dom0 (`dev` is the name of the build VM
 and you'll need to adjust the path):
 
-    # qvm-run -p dev 'cat /path/to/test-mirage/_build/dom0.native' > dom0.native
-    # mv dom0.native /usr/local/bin/test-mirage-dom0
+    # qvm-run -p dev 'cat /path/to/test-mirage/_build/default/dom0.exe' > dom0.exe
+    # mv dom0.exe /usr/local/bin/test-mirage-dom0
     # chmod a+x /usr/local/bin/test-mirage-dom0
 
 Create `/etc/qubes-rpc/talex5.TestMirage` containing just that path:

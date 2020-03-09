@@ -16,7 +16,7 @@ let fd_of_int (x:int) : Unix.file_descr = Obj.magic x
 (** Better error on failure. *)
 let int_of_string x =
   try int_of_string x
-  with Failure "int_of_string" -> error "Not an integer: '%S'" x
+  with Failure _ -> error "Not an integer: '%S'" x
 
 (** Get a channel for an FD in the given environment variable. *)
 let fd_open_env ~mode var =

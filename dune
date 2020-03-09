@@ -1,0 +1,4 @@
+(executables
+ (names dev dom0)
+ (public_names dev dom0)
+ (libraries lwt.unix str))
