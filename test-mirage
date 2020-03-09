@@ -1,6 +1,6 @@
 #!/bin/bash -eu
-DEV_SIDE_BINARY=$(dirname $0)/_build/dev.native
-# DEV_SIDE_BINARY=/path/to/_build/dev.native
+DEV_SIDE_BINARY=$(dirname $0)/_build/default/dev.exe
+# DEV_SIDE_BINARY=/path/to/_build/default/dev.native
 if [ ! -f $DEV_SIDE_BINARY ]; then
   echo "$DEV_SIDE_BINARY not found (try running 'make')"
   exit 1
